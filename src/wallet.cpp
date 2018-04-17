@@ -2097,7 +2097,7 @@ bool CWallet::CreateCollateralTransaction(CMutableTransaction& txCollateral, std
             BOOST_FOREACH (CTxIn v, vCoinsCollateral)
                 UnlockCoin(v.prevout);
 
-            strReason = "CDarkSendPool::Sign - Unable to sign collateral transaction! \n";
+            strReason = "CDarksendPool::Sign - Unable to sign collateral transaction! \n";
             return false;
         }
         vinNumber++;
@@ -2469,8 +2469,8 @@ std::string CWallet::PrepareDarksendDenominate(int minRounds, int maxRounds)
     if (IsLocked())
         return _("Error: Wallet locked, unable to create transaction!");
 
-    if(darkSendPool.GetState() != POOL_STATUS_ERROR && darkSendPool.GetState() != POOL_STATUS_SUCCESS)
-        if(darkSendPool.GetMyTransactionCount() > 0)
+    if(DarksendPool.GetState() != POOL_STATUS_ERROR && DarksendPool.GetState() != POOL_STATUS_SUCCESS)
+        if(DarksendPool.GetMyTransactionCount() > 0)
             return _("Error: You already have pending entries in the Darksend pool");
 
     // ** find the coins we'll use
@@ -2484,7 +2484,7 @@ std::string CWallet::PrepareDarksendDenominate(int minRounds, int maxRounds)
         if minRounds >= 0 it means only denominated inputs are going in and coming out
     */
     if(minRounds >= 0){
-        if (!SelectCoinsByDenominations(darkSendPool.sessionDenom, 0.1*COIN, DARKSEND_POOL_MAX, vCoins, vCoins2, nValueIn, minRounds, maxRounds))
+        if (!SelectCoinsByDenominations(DarksendPool.sessionDenom, 0.1*COIN, DARKSEND_POOL_MAX, vCoins, vCoins2, nValueIn, minRounds, maxRounds))
             return _("Insufficient funds");
     }
 
@@ -2536,13 +2536,13 @@ std::string CWallet::PrepareDarksendDenominate(int minRounds, int maxRounds)
     BOOST_REVERSE_FOREACH(int64_t v, vDenoms){
                     //only use the ones that are approved
                     bool fAccepted = false;
-                    if((darkSendPool.sessionDenom & (1 << 0))      && v == ((100000*COIN) +100000000)) {fAccepted = true;}
-                    else if((darkSendPool.sessionDenom & (1 << 1)) && v == ((10000*COIN)  +10000000)) {fAccepted = true;}
-                    else if((darkSendPool.sessionDenom & (1 << 2)) && v == ((1000*COIN)   +1000000)) {fAccepted = true;}
-                    else if((darkSendPool.sessionDenom & (1 << 3)) && v == ((100*COIN)    +100000)) {fAccepted = true;}
-                    else if((darkSendPool.sessionDenom & (1 << 4)) && v == ((10*COIN)     +10000)) {fAccepted = true;}
-                    else if((darkSendPool.sessionDenom & (1 << 5)) && v == ((1*COIN)      +1000)) {fAccepted = true;}
-                    else if((darkSendPool.sessionDenom & (1 << 6)) && v == ((.1*COIN)     +100)) {fAccepted = true;}
+                    if((DarksendPool.sessionDenom & (1 << 0))      && v == ((100000*COIN) +100000000)) {fAccepted = true;}
+                    else if((DarksendPool.sessionDenom & (1 << 1)) && v == ((10000*COIN)  +10000000)) {fAccepted = true;}
+                    else if((DarksendPool.sessionDenom & (1 << 2)) && v == ((1000*COIN)   +1000000)) {fAccepted = true;}
+                    else if((DarksendPool.sessionDenom & (1 << 3)) && v == ((100*COIN)    +100000)) {fAccepted = true;}
+                    else if((DarksendPool.sessionDenom & (1 << 4)) && v == ((10*COIN)     +10000)) {fAccepted = true;}
+                    else if((DarksendPool.sessionDenom & (1 << 5)) && v == ((1*COIN)      +1000)) {fAccepted = true;}
+                    else if((DarksendPool.sessionDenom & (1 << 6)) && v == ((.1*COIN)     +100)) {fAccepted = true;}
                     if(!fAccepted) continue;
 
                     int nOutputs = 0;
@@ -2568,7 +2568,7 @@ std::string CWallet::PrepareDarksendDenominate(int minRounds, int maxRounds)
                 }
 
     //back up mode , incase we couldn't successfully make the outputs for some reason
-    if(vOut.size() > 40 || darkSendPool.GetDenominations(vOut) != darkSendPool.sessionDenom || nValueLeft != 0){
+    if(vOut.size() > 40 || DarksendPool.GetDenominations(vOut) != DarksendPool.sessionDenom || nValueLeft != 0){
         vOut.clear();
         nValueLeft = nTotalValue;
 
@@ -2593,7 +2593,7 @@ std::string CWallet::PrepareDarksendDenominate(int minRounds, int maxRounds)
 
     }
 
-    if(darkSendPool.GetDenominations(vOut) != darkSendPool.sessionDenom)
+    if(DarksendPool.GetDenominations(vOut) != DarksendPool.sessionDenom)
         return "Error: can't make current denominated outputs";
 
     // we don't support change at all
@@ -2604,7 +2604,7 @@ std::string CWallet::PrepareDarksendDenominate(int minRounds, int maxRounds)
     //randomize the output order
     std::random_shuffle (vOut.begin(), vOut.end());
 
-    darkSendPool.SendDarksendDenominate(vCoins, vOut, nValueIn);
+    DarksendPool.SendDarksendDenominate(vCoins, vOut, nValueIn);
 
     return "";
 }

@@ -5268,7 +5268,7 @@ static bool ProcessMessage(CNode* pfrom, const string &strCommand, CDataStream& 
     else {
         bool processed = false;
 #       if 0
-        if (!processed) darksendPool.ProcessMessage(pfrom, strCommand, vRecv, processed);
+        if (!processed) DarksendPool.ProcessMessage(pfrom, strCommand, vRecv, processed);
         if (!processed) mnodeman.ProcessMessage(pfrom, strCommand, vRecv, processed);
         if (!processed) budget.ProcessMessage(pfrom, strCommand, vRecv, processed);
         if (!processed) masternodePayments.ProcessMessage(pfrom, strCommand, vRecv, processed);

@@ -137,9 +137,9 @@ OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
        {
         if (fMasterNode) {
             ui->toggleDarksend->setText("(" + tr("Disabled") + ")");
-            ui->darksendAuto->setText("(" + tr("Disabled") + ")");
-            ui->darksendReset->setText("(" + tr("Disabled") + ")");
-            ui->frameDarksend->setEnabled(false);
+            ui->DarksendAuto->setText("(" + tr("Disabled") + ")");
+            ui->DarksendReset->setText("(" + tr("Disabled") + ")");
+            ui->frameDarksend->setEnabled(true);
         } else {
             if (!fEnableDarksend) {
                 ui->toggleDarksend->setText(tr("Start Luxsend"));
@@ -147,7 +147,7 @@ OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
                 ui->toggleDarksend->setText(tr("Stop Luxsend"));
             }
             timer = new QTimer(this);
-            connect(timer, SIGNAL(timeout()), this, SLOT(darksendStatus()));
+            connect(timer, SIGNAL(timeout()), this, SLOT(DarksendStatus()));
             timer->start(1000);
         }
     }
@@ -264,8 +264,8 @@ void OverviewPage::setWalletModel(WalletModel* model)
 
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
 
-        connect(ui->darksendAuto, SIGNAL(clicked()), this, SLOT(darksendAuto()));
-        connect(ui->darksendReset, SIGNAL(clicked()), this, SLOT(darksendReset()));
+        connect(ui->DarksendAuto, SIGNAL(clicked()), this, SLOT(DarksendAuto()));
+        connect(ui->DarksendReset, SIGNAL(clicked()), this, SLOT(DarksendReset()));
         connect(ui->toggleDarksend, SIGNAL(clicked()), this, SLOT(toggleDarksend()));
         updateWatchOnlyLabels(model->haveWatchOnly());
         connect(model, SIGNAL(notifyWatchonlyChanged(bool)), this, SLOT(updateWatchOnlyLabels(bool)));
@@ -413,24 +413,24 @@ void OverviewPage::updateDarksendProgress()
     ui->darksendProgress->setToolTip(strToolPip);
 }
 
-void OverviewPage::darksendStatus()
+void OverviewPage::DarksendStatus()
 {
-#if 0
+
     static int64_t nLastDSProgressBlockTime = 0;
 
     int nBestHeight = chainActive.Tip()->nHeight;
 
     // we we're processing more then 1 block per second, we'll just leave
-    //if (((nBestHeight - darksendPool.cachedNumBlocks) / (GetTimeMillis() - nLastDSProgressBlockTime + 1) > 1)) return;
+    //if (((nBestHeight - DarksendPool.cachedNumBlocks) / (GetTimeMillis() - nLastDSProgressBlockTime + 1) > 1)) return;
     nLastDSProgressBlockTime = GetTimeMillis();
 
     if (!fEnableDarksend) {
-        if (nBestHeight != darksendPool.cachedNumBlocks) {
-            darksendPool.cachedNumBlocks = nBestHeight;
+        if (nBestHeight != DarksendPool.cachedNumBlocks) {
+            DarksendPool.cachedNumBlocks = nBestHeight;
             updateDarksendProgress();
 
-            ui->darksendEnabled->setText(tr("Disabled"));
-            ui->darksendStatus->setText("");
+            ui->DarksendEnabled->setText(tr("Disabled"));
+            ui->DarksendStatus->setText("");
             ui->toggleDarksend->setText(tr("Start Luxsend"));
         }
 
@@ -438,71 +438,67 @@ void OverviewPage::darksendStatus()
     }
 
     // check darksend status and unlock if needed
-    if (nBestHeight != darksendPool.cachedNumBlocks) {
+    if (nBestHeight != DarksendPool.cachedNumBlocks) {
         // Balance and number of transactions might have changed
-        darksendPool.cachedNumBlocks = nBestHeight;
+        DarksendPool.cachedNumBlocks = nBestHeight;
         updateDarksendProgress();
 
-        ui->darksendEnabled->setText(tr("Enabled"));
+        ui->DarksendEnabled->setText(tr("Enabled"));
     }
+#if 0
+    QString strStatus = QString(DarksendPool.GetStatus().c_str());
 
-    QString strStatus = QString(darksendPool.GetStatus().c_str());
+    QString s = tr("Last Luxsend message:\n") + strStatus;
 
-    QString s = tr("Last Darksend message:\n") + strStatus;
+    if (s != ui->DarksendStatus->text())
+      //  LogPrintf("Last Luxsend message: %s\n", strStatus.toStdString());
 
-    if (s != ui->darksendStatus->text())
-        LogPrintf("Last Darksend message: %s\n", strStatus.toStdString());
-
-    ui->darksendStatus->setText(s);
-
-    if (darksendPool.sessionDenom == 0) {
+    ui->DarksendStatus->setText();
+#endif
+    if (DarksendPool.sessionDenom == 0) {
         ui->labelSubmittedDenom->setText(tr("N/A"));
     } else {
         std::string out;
-        darksendPool.GetDenominationsToString(darksendPool.sessionDenom, out);
+        DarksendPool.GetDenominationsToString(DarksendPool.sessionDenom, out);
         QString s2(out.c_str());
         ui->labelSubmittedDenom->setText(s2);
     }
-#endif
+
 }
 
-void OverviewPage::darksendAuto()
+void OverviewPage::DarksendAuto()
 {
-#if 0
-    darksendPool.DoAutomaticDenominating();
-#endif
+    DarksendPool.DoAutomaticDenominating();
 }
 
-void OverviewPage::darksendReset()
+void OverviewPage::DarksendReset()
 {
-#if 0
-    darksendPool.Reset();
 
-    QMessageBox::warning(this, tr("Darksend"),
-        tr("Darksend was successfully reset."),
+    DarksendPool.Reset();
+
+    QMessageBox::warning(this, tr("Luxsend"),
+        tr("Luxsend was successfully reset."),
         QMessageBox::Ok, QMessageBox::Ok);
-#endif
 }
 
 void OverviewPage::toggleDarksend()
 {
-#if 0
     QSettings settings;
     // Popup some information on first mixing
     QString hasMixed = settings.value("hasMixed").toString();
     if (hasMixed.isEmpty()) {
-        QMessageBox::information(this, tr("Darksend"),
+        QMessageBox::information(this, tr("Luxsend"),
             tr("If you don't want to see internal Darksend fees/transactions select \"Most Common\" as Type on the \"Transactions\" tab."),
             QMessageBox::Ok, QMessageBox::Ok);
         settings.setValue("hasMixed", "hasMixed");
     }
     if (!fEnableDarksend) {
         int64_t balance = currentBalance;
-        float minAmount = 14.90 * COIN;
+        float minAmount = 1 * COIN;
         if (balance < minAmount) {
             QString strMinAmount(BitcoinUnits::formatWithUnit(nDisplayUnit, minAmount));
-            QMessageBox::warning(this, tr("Darksend"),
-                tr("Darksend requires at least %1 to use.").arg(strMinAmount),
+            QMessageBox::warning(this, tr("Luxsend"),
+                tr("Luxsend requires at least %1 to use.").arg(strMinAmount),
                 QMessageBox::Ok, QMessageBox::Ok);
             return;
         }
@@ -512,32 +508,32 @@ void OverviewPage::toggleDarksend()
             WalletModel::UnlockContext ctx(walletModel->requestUnlock(false));
             if (!ctx.isValid()) {
                 //unlock was cancelled
-                darksendPool.cachedNumBlocks = std::numeric_limits<int>::max();
-                QMessageBox::warning(this, tr("Darksend"),
-                    tr("Wallet is locked and user declined to unlock. Disabling Darksend."),
+                DarksendPool.cachedNumBlocks = std::numeric_limits<int>::max();
+                QMessageBox::warning(this, tr("Luxsend"),
+                    tr("Wallet is locked and user declined to unlock. Disabling Luxsend."),
                     QMessageBox::Ok, QMessageBox::Ok);
-                if (fDebug) LogPrintf("Wallet is locked and user declined to unlock. Disabling Darksend.\n");
+                if (fDebug) LogPrintf("Wallet is locked and user declined to unlock. Disabling Luxsend.\n");
                 return;
             }
         }
     }
 
     fEnableDarksend = !fEnableDarksend;
-    darksendPool.cachedNumBlocks = std::numeric_limits<int>::max();
+    DarksendPool.cachedNumBlocks = std::numeric_limits<int>::max();
 
     if (!fEnableDarksend) {
         ui->toggleDarksend->setText(tr("Start Luxsend"));
-        darksendPool.UnlockCoins();
+        DarksendPool.UnlockCoins();
     } else {
         ui->toggleDarksend->setText(tr("Stop Luxsend"));
 
         /* show darksend configuration if client has defaults set */
 
         if (nAnonymizeLuxAmount == 0) {
-            DarksendConfig dlg(this);
-            dlg.setModel(walletModel);
-            dlg.exec();
+
+           return;
         }
+
     }
-#endif
+
 }

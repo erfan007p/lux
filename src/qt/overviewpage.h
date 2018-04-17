@@ -38,7 +38,7 @@ public:
     void updateDarksendProgress();
 
 public slots:
-    void darksendStatus();
+    void DarksendStatus();
     void setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& anonymizedBalance, const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
 
 signals:
@@ -63,8 +63,8 @@ private:
 
 private slots:
     void toggleDarksend();
-    void darksendAuto();
-    void darksendReset();
+    void DarksendAuto();
+    void DarksendReset();
     void updateDisplayUnit();
     void handleTransactionClicked(const QModelIndex& index);
     void updateAlerts(const QString& warnings);

@@ -1539,14 +1539,14 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     nLiquidityProvider = GetArg("-liquidityprovider", 0); //0-100
     if (nLiquidityProvider != 0) {
-        darkSendPool.SetMinBlockSpacing(std::min(nLiquidityProvider,100)*15);
+        DarksendPool.SetMinBlockSpacing(std::min(nLiquidityProvider,100)*15);
         fEnableDarksend = true;
         nDarksendRounds = 99999;
     }
 
     nAnonymizeLuxAmount = GetArg("-anonymizeLuxamount", 0);
     if (nAnonymizeLuxAmount > 999999) nAnonymizeLuxAmount = 999999;
-    if (nAnonymizeLuxAmount < 2) nAnonymizeLuxAmount = 2;
+    if (nAnonymizeLuxAmount < 1) nAnonymizeLuxAmount = 1;
 
     LogPrintf("LUX darksend rounds %d\n", nDarksendRounds);
     LogPrintf("Anonymize Lux Amount %d\n", nAnonymizeLuxAmount);
@@ -1565,14 +1565,13 @@ bool AppInit2(boost::thread_group& threadGroup)
     darkSendDenominations.push_back( (10          * COIN)+10000 );
     darkSendDenominations.push_back( (1           * COIN)+1000 );
     darkSendDenominations.push_back( (.1          * COIN)+100 );
-    /* Disabled till we need them
     darkSendDenominations.push_back( (.01      * COIN)+10 );
     darkSendDenominations.push_back( (.001     * COIN)+1 );
-    */
 
-    darkSendPool.InitCollateralAddress();
 
-    threadGroup.create_thread(boost::bind(&ThreadCheckDarkSendPool));
+    DarksendPool.InitCollateralAddress();
+
+    threadGroup.create_thread(boost::bind(&ThreadCheckDarksendPool));
 
     RandAddSeedPerfmon();
 

@@ -34,7 +34,7 @@ void ProcessMasternodeConnections(){
     BOOST_FOREACH(CNode* pnode, vNodes)
                 {
                     //if it's our masternode, let it be
-                    if(darkSendPool.submittedToMasternode == pnode->addr) continue;
+                    if(DarksendPool.submittedToMasternode == pnode->addr) continue;
 
                     if(pnode->fDarkSendMaster){
                         LogPrintf("Closing masternode connection %s \n", pnode->addr.ToString().c_str());
@@ -151,11 +151,11 @@ void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream&
         if(fDebug) LogPrintf("dsee - Got NEW masternode entry %s\n", addr.ToString().c_str());
 
         // make sure it's still unspent
-        //  - this is checked later by .check() in many places and by ThreadCheckDarkSendPool()
+        //  - this is checked later by .check() in many places and by ThreadCheckDarksendPool()
 
         CValidationState state;
         CTransaction tx = CTransaction();
-        CTxOut vout = CTxOut((GetMNCollateral(chainActive.Tip()->nHeight)-1)*COIN, darkSendPool.collateralPubKey);
+        CTxOut vout = CTxOut((GetMNCollateral(chainActive.Tip()->nHeight)-1)*COIN, DarksendPool.collateralPubKey);
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
         //if(AcceptableInputs(mempool, state, tx)){
@@ -604,7 +604,7 @@ void CMasterNode::Check()
     if(!unitTest){
         CValidationState state;
         CTransaction tx = CTransaction();
-        CTxOut vout = CTxOut((GetMNCollateral(chainActive.Tip()->nHeight)-1)*COIN, darkSendPool.collateralPubKey);
+        CTxOut vout = CTxOut((GetMNCollateral(chainActive.Tip()->nHeight)-1)*COIN, DarksendPool.collateralPubKey);
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
 

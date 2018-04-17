@@ -70,13 +70,13 @@ UniValue darksend(const UniValue& params, bool fHelp)
         if(fMasterNode)
             return "DarkSend is not supported from masternodes";
 
-        darkSendPool.DoAutomaticDenominating();
+        DarksendPool.DoAutomaticDenominating();
         return "DoAutomaticDenominating";
     }
 
     if(params[0].get_str() == "reset"){
-        darkSendPool.SetNull(true);
-        darkSendPool.UnlockCoins();
+        DarksendPool.SetNull(true);
+        DarksendPool.UnlockCoins();
         return "successfully reset darksend";
     }
 
@@ -97,7 +97,7 @@ UniValue darksend(const UniValue& params, bool fHelp)
     // Wallet comments
     CWalletTx wtx;
     SendMoney(address.Get(), nAmount, wtx, ONLY_DENOMINATED);
-   
+
     return wtx.GetHash().GetHex();
 }
 
@@ -111,9 +111,9 @@ UniValue getpoolinfo(const UniValue& params, bool fHelp)
 
     UniValue obj(UniValue::VOBJ);
     obj.push_back(Pair("current_masternode",        GetCurrentMasterNode()));
-    obj.push_back(Pair("state",        darkSendPool.GetState()));
-    obj.push_back(Pair("entries",      darkSendPool.GetEntriesCount()));
-    obj.push_back(Pair("entries_accepted",      darkSendPool.GetCountEntriesAccepted()));
+    obj.push_back(Pair("state",        DarksendPool.GetState()));
+    obj.push_back(Pair("entries",      DarksendPool.GetEntriesCount()));
+    obj.push_back(Pair("entries_accepted",      DarksendPool.GetCountEntriesAccepted()));
     return obj;
 }
 

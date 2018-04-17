@@ -11,7 +11,7 @@
 #include "activemasternode.h"
 
 class CTxIn;
-class CDarkSendPool;
+class CDarksendPool;
 class CDarkSendSigner;
 class CMasterNodeVote;
 class CBitcoinAddress;
@@ -38,7 +38,7 @@ class CActiveMasternode;
 #define DARKSEND_QUEUE_TIMEOUT                 120
 #define DARKSEND_SIGNING_TIMEOUT               30
 
-extern CDarkSendPool darkSendPool;
+extern CDarksendPool DarksendPool;
 extern CDarkSendSigner darkSendSigner;
 extern std::vector<CDarksendQueue> vecDarksendQueue;
 extern std::string strMasterNodePrivKey;
@@ -150,6 +150,7 @@ public:
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion){
+	//unsigned int nSerSize = 0;
         READWRITE(nDenom);
         READWRITE(vin);
         READWRITE(time);
@@ -221,7 +222,7 @@ class CDarksendSession
 //
 // Used to keep track of current status of darksend pool
 //
-class CDarkSendPool
+class CDarksendPool
 {
 public:
     static const int MIN_PEER_PROTO_VERSION = 69100;
@@ -273,7 +274,7 @@ public:
     //incremented whenever a DSQ comes through
     int64_t nDsqCount;
 
-    CDarkSendPool()
+    CDarksendPool()
     {
         /* DarkSend uses collateral addresses to trust parties entering the pool
             to behave themselves. If they don't it takes their money. */
@@ -342,15 +343,15 @@ public:
     void UpdateState(unsigned int newState)
     {
         if (fMasterNode && (newState == POOL_STATUS_ERROR || newState == POOL_STATUS_SUCCESS)){
-            LogPrintf("CDarkSendPool::UpdateState() - Can't set state to ERROR or SUCCESS as a masternode. \n");
+            LogPrintf("CDarksendPool::UpdateState() - Can't set state to ERROR or SUCCESS as a masternode. \n");
             return;
         }
 
-        LogPrintf("CDarkSendPool::UpdateState() == %d | %d \n", state, newState);
+        LogPrintf("CDarksendPool::UpdateState() == %d | %d \n", state, newState);
         if(state != newState){
             lastTimeChanged = GetTimeMillis();
             if(fMasterNode) {
-                RelayDarkSendStatus(darkSendPool.sessionID, darkSendPool.GetState(), darkSendPool.GetEntriesCount(), MASTERNODE_RESET);
+                RelayDarkSendStatus(DarksendPool.sessionID, DarksendPool.GetState(), DarksendPool.GetEntriesCount(), MASTERNODE_RESET);
             }
         }
         state = newState;
@@ -358,7 +359,7 @@ public:
 
     int GetMaxPoolTransactions()
     {
-        
+
         //use the production amount
         return POOL_MAX_TRANSACTIONS;
     }
@@ -426,6 +427,6 @@ public:
 
 void ConnectToDarkSendMasterNodeWinner();
 
-void ThreadCheckDarkSendPool();
+void ThreadCheckDarksendPool();
 
 #endif

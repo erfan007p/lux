@@ -76,7 +76,7 @@ void OptionsModel::Init()
         settings.setValue("nDarksendRounds", 2);
 
     if (!settings.contains("nAnonymizeLuxAmount"))
-        settings.setValue("nAnonymizeLuxAmount", 1000);
+        settings.setValue("nAnonymizeLuxAmount", 1);
 
     nDarksendRounds = settings.value("nDarksendRounds").toLongLong();
     nAnonymizeLuxAmount = settings.value("nAnonymizeLuxAmount").toLongLong();

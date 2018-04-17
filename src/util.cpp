@@ -112,12 +112,12 @@ string strMasterNodeAddr = "";
 bool fEnableInstanTX = true;
 int nInstanTXDepth = 5;
 int nDarksendRounds = 2;
-int nAnonymizeLuxAmount = 1000;
+int nAnonymizeLuxAmount = 1;
 int nLiquidityProvider = 0;
 /** Spork enforcement enabled time */
 int64_t enforceMasternodePaymentsTime = 4085657524;
 bool fSucessfullyLoaded = false;
-bool fEnableDarksend = false;
+bool fEnableDarksend = true;
 /** All denominations used by darksend */
 std::vector<int64_t> darkSendDenominations;
 string strBudgetMode = "";

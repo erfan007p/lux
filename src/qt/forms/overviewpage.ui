@@ -1012,7 +1012,7 @@
            <bool>true</bool>
           </property>
          </widget>
-         <widget class="QPushButton" name="darksendAuto">
+         <widget class="QPushButton" name="DarksendAuto">
           <property name="geometry">
            <rect>
             <x>10</x>
@@ -1034,7 +1034,7 @@
            <string>Try Mix</string>
           </property>
          </widget>
-         <widget class="QPushButton" name="darksendReset">
+         <widget class="QPushButton" name="DarksendReset">
           <property name="geometry">
            <rect>
             <x>230</x>
