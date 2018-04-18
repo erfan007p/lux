@@ -48,24 +48,25 @@ static const unsigned char pchIPv4[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0x
 // Need ample time for negotiation for very slow proxies such as Tor (milliseconds)
 static const int SOCKS5_RECV_TIMEOUT = 20 * 1000;
 
-enum Network ParseNetwork(std::string net)
-{
+enum Network ParseNetwork(std::string net) {
     boost::to_lower(net);
     if (net == "ipv4") return NET_IPV4;
     if (net == "ipv6") return NET_IPV6;
-    if (net == "tor" || net == "onion") return NET_TOR;
+    if (net == "tor" || net == "onion")  return NET_TOR;
+    if (net == "i2p")  return NET_I2P;
     return NET_UNROUTABLE;
 }
 
-std::string GetNetworkName(enum Network net)
-{
+std::string GetNetworkName(enum Network net) {
     switch (net) {
     case NET_IPV4:
         return "ipv4";
     case NET_IPV6:
         return "ipv6";
     case NET_TOR:
-        return "onion";
+        return "tor";
+    case NET_I2P:
+        return "i2p";
     default:
         return "";
     }
@@ -618,7 +619,8 @@ void CNetAddr::SetRaw(Network network, const uint8_t* ip_in)
     }
 }
 
-static const unsigned char pchOnionCat[] = {0xFD, 0x87, 0xD8, 0x7E, 0xEB, 0x43};
+static const unsigned char pchOnionCat[] = {0xFD,0x87,0xD8,0x7E,0xEB,0x43};
+static const unsigned char pchGarliCat[] = {0xFD,0x60,0xDB,0x4D,0xDD,0xB5};
 
 bool CNetAddr::SetSpecial(const std::string& strName)
 {
@@ -631,8 +633,17 @@ bool CNetAddr::SetSpecial(const std::string& strName)
             ip[i + sizeof(pchOnionCat)] = vchAddr[i];
         return true;
     }
+    if (strName.size()>11 && strName.substr(strName.size() - 11, 11) == ".oc.b32.i2p") {
+        std::vector<unsigned char> vchAddr = DecodeBase32(strName.substr(0, strName.size() - 11).c_str());
+        if (vchAddr.size() != 16-sizeof(pchGarliCat))
+            return false;
+        memcpy(ip, pchOnionCat, sizeof(pchGarliCat));
+        for (unsigned int i=0; i<16-sizeof(pchGarliCat); i++)
+            ip[i + sizeof(pchGarliCat)] = vchAddr[i];
+        return true;
+    }
     return false;
-}
+    }
 
 CNetAddr::CNetAddr()
 {
@@ -677,7 +688,7 @@ bool CNetAddr::IsIPv4() const
 
 bool CNetAddr::IsIPv6() const
 {
-    return (!IsIPv4() && !IsTor());
+    return (!IsIPv4() && !IsTor() && !IsI2P());
 }
 
 bool CNetAddr::IsRFC1918() const
@@ -752,15 +763,8 @@ bool CNetAddr::IsRFC4843() const
     return (GetByte(15) == 0x20 && GetByte(14) == 0x01 && GetByte(13) == 0x00 && (GetByte(12) & 0xF0) == 0x10);
 }
 
-bool CNetAddr::IsOnionCat() const
+bool CNetAddr::IsI2P() const
 {
-    static const unsigned char pchOnionCat[] = {0xFD,0x87,0xD8,0x7E,0xEB,0x43};
-    return (memcmp(ip, pchOnionCat, sizeof(pchOnionCat)) == 0);
-}
-
-bool CNetAddr::IsGarliCat() const
-{
-    static const unsigned char pchGarliCat[] = {0xFD,0x60,0xDB,0x4D,0xDD,0xB5};
     return (memcmp(ip, pchGarliCat, sizeof(pchGarliCat)) == 0);
 }
 
@@ -825,7 +829,7 @@ bool CNetAddr::IsValid() const
 
 bool CNetAddr::IsRoutable() const
 {
-    return IsValid() && !(IsRFC1918() || IsRFC2544() || IsRFC3927() || IsRFC4862() || IsRFC6598() || IsRFC5737() || (IsRFC4193() && !IsTor()) && !IsOnionCat() && !IsGarliCat()) || IsRFC4843() || IsLocal();
+    return IsValid() && !(IsRFC1918() || IsRFC2544() || IsRFC3927() || IsRFC4862() || IsRFC6598() || IsRFC5737() || (IsRFC4193() && !IsTor() && !IsI2P()) || IsRFC4843() || IsLocal());
 }
 
 enum Network CNetAddr::GetNetwork() const
@@ -839,6 +843,9 @@ enum Network CNetAddr::GetNetwork() const
     if (IsTor())
         return NET_TOR;
 
+    if (IsI2P())
+        return NET_I2P;
+
     return NET_IPV6;
 }
 
@@ -846,6 +853,8 @@ std::string CNetAddr::ToStringIP() const
 {
     if (IsTor())
         return EncodeBase32(&ip[6], 10) + ".onion";
+    if (IsI2P())
+        return EncodeBase32(&ip[6], 10) + ".oc.b32.i2p";
     CService serv(*this, 0);
     struct sockaddr_storage sockaddr;
     socklen_t socklen = sizeof(sockaddr);
@@ -939,6 +948,10 @@ std::vector<unsigned char> CNetAddr::GetGroup() const
         nClass = NET_TOR;
         nStartByte = 6;
         nBits = 4;
+    } else if (IsI2P()) {
+        nClass = NET_I2P;
+        nStartByte = 6;
+        nBits = 4;
     }
     // for he.net, use /36 groups
     else if (GetByte(15) == 0x20 && GetByte(14) == 0x01 && GetByte(13) == 0x04 && GetByte(12) == 0x70)
@@ -981,8 +994,7 @@ int static GetExtNetwork(const CNetAddr* addr)
 }
 
 /** Calculates a metric for how reachable (*this) is from a given partner */
-int CNetAddr::GetReachabilityFrom(const CNetAddr* paddrPartner) const
-{
+int CNetAddr::GetReachabilityFrom(const CNetAddr* paddrPartner) const {
     enum Reachability {
         REACH_UNREACHABLE,
         REACH_DEFAULT,
@@ -1028,6 +1040,11 @@ int CNetAddr::GetReachabilityFrom(const CNetAddr* paddrPartner) const
         case NET_TOR:
             return REACH_PRIVATE;
         }
+        case NET_I2P:
+            switch(ourNet) {
+                default:         return REACH_DEFAULT;
+                case NET_I2P:    return REACH_PRIVATE;
+    }
     case NET_TEREDO:
         switch (ourNet) {
         default:
@@ -1051,46 +1068,40 @@ int CNetAddr::GetReachabilityFrom(const CNetAddr* paddrPartner) const
             return REACH_IPV6_WEAK;
         case NET_IPV4:
             return REACH_IPV4;
+        case NET_I2P:
+            return REACH_PRIVATE; // assume connections from unroutable addresses are
         case NET_TOR:
             return REACH_PRIVATE; // either from Tor, or don't care about our address
         }
     }
 }
 
-void CService::Init()
-{
+void CService::Init() {
     port = 0;
 }
 
-CService::CService()
-{
+CService::CService() {
     Init();
 }
 
-CService::CService(const CNetAddr& cip, unsigned short portIn) : CNetAddr(cip), port(portIn)
-{
+CService::CService(const CNetAddr& cip, unsigned short portIn) : CNetAddr(cip), port(portIn) {
 }
 
-CService::CService(const struct in_addr& ipv4Addr, unsigned short portIn) : CNetAddr(ipv4Addr), port(portIn)
-{
+CService::CService(const struct in_addr& ipv4Addr, unsigned short portIn) : CNetAddr(ipv4Addr), port(portIn) {
 }
 
-CService::CService(const struct in6_addr& ipv6Addr, unsigned short portIn) : CNetAddr(ipv6Addr), port(portIn)
-{
+CService::CService(const struct in6_addr& ipv6Addr, unsigned short portIn) : CNetAddr(ipv6Addr), port(portIn) {
 }
 
-CService::CService(const struct sockaddr_in& addr) : CNetAddr(addr.sin_addr), port(ntohs(addr.sin_port))
-{
+CService::CService(const struct sockaddr_in& addr) : CNetAddr(addr.sin_addr), port(ntohs(addr.sin_port)) {
     assert(addr.sin_family == AF_INET);
 }
 
-CService::CService(const struct sockaddr_in6& addr) : CNetAddr(addr.sin6_addr), port(ntohs(addr.sin6_port))
-{
+CService::CService(const struct sockaddr_in6& addr) : CNetAddr(addr.sin6_addr), port(ntohs(addr.sin6_port)) {
     assert(addr.sin6_family == AF_INET6);
 }
 
-bool CService::SetSockAddr(const struct sockaddr* paddr)
-{
+bool CService::SetSockAddr(const struct sockaddr* paddr) {
     switch (paddr->sa_family) {
     case AF_INET:
         *this = CService(*(const struct sockaddr_in*)paddr);
@@ -1103,60 +1114,51 @@ bool CService::SetSockAddr(const struct sockaddr* paddr)
     }
 }
 
-CService::CService(const char* pszIpPort, bool fAllowLookup)
-{
+CService::CService(const char* pszIpPort, bool fAllowLookup) {
     Init();
     CService ip;
     if (Lookup(pszIpPort, ip, 0, fAllowLookup))
         *this = ip;
 }
 
-CService::CService(const char* pszIpPort, int portDefault, bool fAllowLookup)
-{
+CService::CService(const char* pszIpPort, int portDefault, bool fAllowLookup) {
     Init();
     CService ip;
     if (Lookup(pszIpPort, ip, portDefault, fAllowLookup))
         *this = ip;
 }
 
-CService::CService(const std::string& strIpPort, bool fAllowLookup)
-{
+CService::CService(const std::string& strIpPort, bool fAllowLookup) {
     Init();
     CService ip;
     if (Lookup(strIpPort.c_str(), ip, 0, fAllowLookup))
         *this = ip;
 }
 
-CService::CService(const std::string& strIpPort, int portDefault, bool fAllowLookup)
-{
+CService::CService(const std::string& strIpPort, int portDefault, bool fAllowLookup) {
     Init();
     CService ip;
     if (Lookup(strIpPort.c_str(), ip, portDefault, fAllowLookup))
         *this = ip;
 }
 
-unsigned short CService::GetPort() const
-{
+unsigned short CService::GetPort() const {
     return port;
 }
 
-bool operator==(const CService& a, const CService& b)
-{
+bool operator==(const CService& a, const CService& b) {
     return (CNetAddr)a == (CNetAddr)b && a.port == b.port;
 }
 
-bool operator!=(const CService& a, const CService& b)
-{
+bool operator!=(const CService& a, const CService& b) {
     return (CNetAddr)a != (CNetAddr)b || a.port != b.port;
 }
 
-bool operator<(const CService& a, const CService& b)
-{
+bool operator<(const CService& a, const CService& b) {
     return (CNetAddr)a < (CNetAddr)b || ((CNetAddr)a == (CNetAddr)b && a.port < b.port);
 }
 
-bool CService::GetSockAddr(struct sockaddr* paddr, socklen_t* addrlen) const
-{
+bool CService::GetSockAddr(struct sockaddr* paddr, socklen_t* addrlen) const {
     if (IsIPv4()) {
         if (*addrlen < (socklen_t)sizeof(struct sockaddr_in))
             return false;
@@ -1184,8 +1186,7 @@ bool CService::GetSockAddr(struct sockaddr* paddr, socklen_t* addrlen) const
     return false;
 }
 
-std::vector<unsigned char> CService::GetKey() const
-{
+std::vector<unsigned char> CService::GetKey() const {
     std::vector<unsigned char> vKey;
     vKey.resize(18);
     memcpy(&vKey[0], ip, 16);
@@ -1194,32 +1195,27 @@ std::vector<unsigned char> CService::GetKey() const
     return vKey;
 }
 
-std::string CService::ToStringPort() const
-{
+std::string CService::ToStringPort() const {
     return strprintf("%u", port);
 }
 
-std::string CService::ToStringIPPort() const
-{
-    if (IsIPv4() || IsTor()) {
+std::string CService::ToStringIPPort() const {
+    if (IsIPv4() || IsTor() || IsI2P()) {
         return ToStringIP() + ":" + ToStringPort();
     } else {
         return "[" + ToStringIP() + "]:" + ToStringPort();
     }
 }
 
-std::string CService::ToString() const
-{
+std::string CService::ToString() const {
     return ToStringIPPort();
 }
 
-void CService::SetPort(unsigned short portIn)
-{
+void CService::SetPort(unsigned short portIn) {
     port = portIn;
 }
 
-CSubNet::CSubNet() : valid(false)
-{
+CSubNet::CSubNet() : valid(false) {
     memset(netmask, 0, sizeof(netmask));
 }
 

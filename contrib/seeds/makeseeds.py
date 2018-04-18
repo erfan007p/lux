@@ -42,7 +42,7 @@ def parseline(line):
             if m is None:
                 return None
             else:
-                net = 'onion'
+                net = 'tor'
                 ipstr = sortkey = m.group(1)
                 port = int(m.group(2))
         else:

@@ -5620,8 +5620,8 @@ for example: alertnotify=echo %%s | mail -s &quot;LUX Alert&quot; admin@foo.com
     </message>
     <message>
         <location line="+1"/>
-        <source>Error: Unsupported argument -tor found, use -onion.</source>
-        <translation type="unfinished">Error: Unsupported argument -tor found, use -onion.</translation>
+        <source>Error: Unsupported argument -onion found, use -tor.</source>
+        <translation type="unfinished">Error: Unsupported argument -onion found, use -tor.</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -5735,8 +5735,8 @@ for example: alertnotify=echo %%s | mail -s &quot;LUX Alert&quot; admin@foo.com
     </message>
     <message>
         <location line="+1"/>
-        <source>Invalid -onion address: &apos;%s&apos;</source>
-        <translation type="unfinished">Invalid -onion address: &apos;%s&apos;</translation>
+        <source>Invalid -tor address: &apos;%s&apos;</source>
+        <translation type="unfinished">Invalid -tor address: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -6005,8 +6005,8 @@ for example: alertnotify=echo %%s | mail -s &quot;LUX Alert&quot; admin@foo.com
     </message>
     <message>
         <location line="+1"/>
-        <source>Only connect to nodes in network &lt;net&gt; (ipv4, ipv6 or onion)</source>
-        <translation type="unfinished">Only connect to nodes in network &lt;net&gt; (ipv4, ipv6 or onion)</translation>
+        <source>Only connect to nodes in network &lt;net&gt; (ipv4, ipv6 or tor)</source>
+        <translation type="unfinished">Only connect to nodes in network &lt;net&gt; (ipv4, ipv6 or tor)</translation>
     </message>
     <message>
         <location line="+1"/>

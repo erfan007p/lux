@@ -4404,8 +4404,8 @@ for example: alertnotify=echo %%s | mail -s "LUX Alert" admin@foo.com
         <translation>Error: Disk space is low!</translation>
     </message>
     <message>
-        <source>Error: Unsupported argument -tor found, use -onion.</source>
-        <translation>Error: Unsupported argument -tor found, use -onion.</translation>
+        <source>Error: Unsupported argument -onion found, use -tor.</source>
+        <translation>Error: Unsupported argument -onion found, use -tor.</translation>
     </message>
     <message>
         <source>Error: Wallet locked, unable to create transaction!</source>
@@ -4496,8 +4496,8 @@ for example: alertnotify=echo %%s | mail -s "LUX Alert" admin@foo.com
         <translation>Insufficient funds.</translation>
     </message>
     <message>
-        <source>Invalid -onion address: '%s'</source>
-        <translation>Invalid -onion address: '%s'</translation>
+        <source>Invalid -tor address: '%s'</source>
+        <translation>Invalid -tor address: '%s'</translation>
     </message>
     <message>
         <source>Invalid -proxy address: '%s'</source>
@@ -4712,8 +4712,8 @@ for example: alertnotify=echo %%s | mail -s "LUX Alert" admin@foo.com
         <translation>Only accept block chain matching built-in checkpoints (default: %u)</translation>
     </message>
     <message>
-        <source>Only connect to nodes in network &lt;net&gt; (ipv4, ipv6 or onion)</source>
-        <translation>Only connect to nodes in network &lt;net&gt; (ipv4, ipv6 or onion)</translation>
+        <source>Only connect to nodes in network &lt;net&gt; (ipv4, ipv6 or tor)</source>
+        <translation>Only connect to nodes in network &lt;net&gt; (ipv4, ipv6 or tor)</translation>
     </message>
     <message>
         <source>Options:</source>

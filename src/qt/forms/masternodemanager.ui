@@ -237,7 +237,7 @@
              </column>
              <column>
               <property name="text">
-               <string>IP/Onion</string>
+               <string>IP/Tor</string>
               </property>
              </column>
              <column>
