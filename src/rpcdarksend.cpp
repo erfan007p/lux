@@ -277,9 +277,9 @@ UniValue masternode(const UniValue& params, bool fHelp)
             strCommand = params[1].get_str().c_str();
         }
 
-        if (strCommand != "active" && strCommand != "vin" && strCommand != "pubkey" && strCommand != "lastseen" && strCommand != "activeseconds" && strCommand != "rank" && strCommand != "protocol"){
+        if (strCommand != "active" && strCommand != "vin" && strCommand != "pubkey" && strCommand != "lastseen" && strCommand != "activeseconds" && strCommand != "rank" && strCommand != "protocol" && strCommand != "full"){
             throw runtime_error(
-                "list supports 'active', 'vin', 'pubkey', 'lastseen', 'activeseconds', 'rank', 'protocol'\n");
+                "list supports 'active', 'vin', 'pubkey', 'lastseen', 'activeseconds', 'rank', 'protocol', 'full'\n");
         }
 
         UniValue obj(UniValue::VOBJ);
@@ -306,7 +306,18 @@ UniValue masternode(const UniValue& params, bool fHelp)
                 obj.push_back(Pair(mn.addr.ToString().c_str(),       (int64_t)(mn.lastTimeSeen - mn.now)));
             } else if (strCommand == "rank") {
                 obj.push_back(Pair(mn.addr.ToString().c_str(),       (int)(GetMasternodeRank(mn.vin, chainActive.Tip()->nHeight))));
-            }
+            } else if (strCommand == "full") {
+                std::ostringstream streamFull;
+                streamFull << std::setw(18) <<
+                               mn.IsEnabled() << " " <<
+                               mn.protocolVersion << " " <<
+                               CBitcoinAddress(mn.pubkey.GetID()).ToString() << " " <<
+                               (int64_t)mn.lastTimeSeen << " " << std::setw(8) <<
+                               (int64_t)(mn.lastTimeSeen - mn.now) << " " << std::setw(10) << " " <<
+                               mn.addr.ToString();
+                std::string strFull = streamFull.str();
+                obj.push_back(Pair(mn.vin.prevout.hash.ToString().c_str(), strFull));
+
         }
         return obj;
     }
