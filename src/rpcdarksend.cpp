@@ -317,7 +317,7 @@ UniValue masternode(const UniValue& params, bool fHelp)
                                mn.addr.ToString();
                 std::string strFull = streamFull.str();
                 obj.push_back(Pair(mn.vin.prevout.hash.ToString().c_str(), strFull));
-
+            }
         }
         return obj;
     }
